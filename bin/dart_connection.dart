@@ -73,7 +73,7 @@ Future<void> expenseMenu(int userId) async {
         } else {
           print("Error fetching expenses: ${response.statusCode}");
         }
-        
+
       case '2':
         final today = DateTime.now();
         final todayStr = "${today.year}-${today.month}-${today.day}";
@@ -82,7 +82,7 @@ Future<void> expenseMenu(int userId) async {
 
         if (todayResp.statusCode == 200) {
           List<dynamic> todayExpenses = jsonDecode(todayResp.body);
-          printExpenses(todayExpenses, "Today's Expenses");
+          printExpenses(todayExpenses, "Today's Expenses", showTotal: false);
         } else {
           print("Error fetching today's expenses: ${todayResp.statusCode}");
         }
