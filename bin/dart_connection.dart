@@ -27,3 +27,31 @@ stdout.write("===== Login =====\n");
     }
   });
 }
+
+Future<void> expenseMenu(int userId) async {
+  while (true) {
+    print("\n===== Expense Tracking App =====");
+    print("1. Show all");
+    print("2. Today's expense");
+    print("3. Search expense");
+    print("4. Add new expense");
+    print("5. Delete an expense");
+    print("6. Exit");
+
+    stdout.write("Choose...");
+    String? choose = stdin.readLineSync()?.trim();
+
+    switch (choose) {
+      case '1':
+        final url = Uri.parse('http://localhost:3000/expenses?user_id=$userId');
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          List<dynamic> expense = jsonDecode(response.body);
+        } else {
+          print("Error fetching expenses: ${response.statusCode}");
+        }
+        break;
+    }
+  }
+}
