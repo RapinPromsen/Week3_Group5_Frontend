@@ -108,6 +108,32 @@ Future<void> expenseMenu(int userId) async {
           }
         }
         break;
+        case '4':
+        stdout.write("Enter item: ");
+        String? item = stdin.readLineSync()?.trim();
+
+        stdout.write("Enter amount: ");
+        String? amountStr = stdin.readLineSync()?.trim();
+        int? amount = int.tryParse(amountStr ?? "");
+
+      if (item != null && item.isNotEmpty && amount != null) {
+          final url = Uri.parse('http://localhost:3000/expenses');
+          final body = {
+            "user_id": userId.toString(),
+            "item": item,
+            "paid": amount.toString()
+          };
+
+          final response = await http.post(url, body: body);
+          if (response.statusCode == 200) {
+            print("Expense added successfully!");
+          } else {
+            print("Failed to add expense");
+          }
+        } else {
+          print("Invalid input!");
+        }
+          break;
     }
   }
 }
