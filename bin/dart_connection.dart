@@ -20,6 +20,7 @@ stdout.write("===== Login =====\n");
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final int userId = data['user_id'];
+      expenseMenu(userId);
     } else if (response.statusCode == 401  ||response.statusCode == 500) {
       stdout.write(response.body + "\n");
     } else {
