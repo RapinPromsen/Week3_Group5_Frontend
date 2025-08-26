@@ -69,6 +69,7 @@ Future<void> expenseMenu(int userId) async {
 
         if (response.statusCode == 200) {
           List<dynamic> expense = jsonDecode(response.body);
+          printExpenses(expense, "All Expenses"); //little bug 
         } else {
           print("Error fetching expenses: ${response.statusCode}");
         }
