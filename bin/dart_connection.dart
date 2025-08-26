@@ -107,7 +107,7 @@ Future<void> expenseMenu(int userId) async {
             print("Error searching expenses");
           }
         }
-        break;
+          break;
         case '4':
         stdout.write("Enter item: ");
         String? item = stdin.readLineSync()?.trim();
@@ -134,6 +134,24 @@ Future<void> expenseMenu(int userId) async {
           print("Invalid input!");
         }
           break;
+        case '5':
+        stdout.write("Enter expense ID to delete: ");
+        String? idStr = stdin.readLineSync()?.trim();
+        int? id = int.tryParse(idStr ?? "");
+
+        if (id != null) {
+          final url = Uri.parse('http://localhost:3000/expenses/$id');
+          final response = await http.delete(url);
+
+          if (response.statusCode == 200) {
+            print("Expense deleted successfully!");
+          } else {
+            print("Failed to delete expense");
+          }
+        } else {
+          print("Invalid ID!");
+        }
+        break;
     }
   }
 }
