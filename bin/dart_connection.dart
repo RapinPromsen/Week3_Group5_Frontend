@@ -151,7 +151,10 @@ Future<void> expenseMenu(int userId) async {
         } else {
           print("Invalid ID!");
         }
-        break;
+          break;
+        case '6':
+        print("Goodbye!");
+        return;
     }
   }
 }
