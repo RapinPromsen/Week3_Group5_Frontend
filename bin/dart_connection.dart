@@ -69,92 +69,105 @@ Future<void> expenseMenu(int userId) async {
 
         if (response.statusCode == 200) {
           List<dynamic> expense = jsonDecode(response.body);
+          printExpenses(expense, "All Expenses"); //little bug 
         } else {
           print("Error fetching expenses: ${response.statusCode}");
         }
-        break;
-      case '2':
-        final url = Uri.parse(
-          'http://localhost:3000/expenses/today?user_id=$userId',
-        );
-        final response = await http.get(url);
 
-        if (response.statusCode == 200) {
-          List<dynamic> expenses = jsonDecode(response.body);
-          printExpenses(expenses, "Today's Expenses");
+      case '2':
+        final today = DateTime.now();
+        final todayStr = "${today.year}-${today.month}-${today.day}";
+        final todayUrl = Uri.parse('http://localhost:3000/expenses?user_id=$userId&date=$todayStr');
+        final todayResp = await http.get(todayUrl);
+
+        if (todayResp.statusCode == 200) {
+          List<dynamic> todayExpenses = jsonDecode(todayResp.body);
+          printExpenses(todayExpenses, "Today's Expenses", showTotal: false);
         } else {
-          print("Error fetching today's expenses");
+          print("Error fetching today's expenses: ${todayResp.statusCode}");
         }
         break;
       case '3':
-        stdout.write("Enter keyword to search: ");
-        String? keyword = stdin.readLineSync()?.trim();
+        stdout.write("Item to search:");
+        String? keyword = stdin.readLineSync();
 
         if (keyword != null && keyword.isNotEmpty) {
-          final url = Uri.parse(
-            'http://localhost:3000/expenses/search?user_id=$userId&keyword=$keyword',
-          );
+          final url = Uri.parse('http://localhost:3000/expenses?user_id=$userId');
           final response = await http.get(url);
 
           if (response.statusCode == 200) {
-            List<dynamic> expenses = jsonDecode(response.body);
-            if (expenses.isEmpty) {
-              print("No expenses found for '$keyword'");
+            List<dynamic> allExpenses = jsonDecode(response.body);
+
+            var results = allExpenses.where((e) =>
+                (e['item'] as String).toLowerCase().contains(keyword.toLowerCase())).toList();
+
+            if (results.isEmpty) {
+              print("No items: \"$keyword\"");
             } else {
-              printExpenses(expenses, "Search result for '$keyword'");
+              printExpenses(results, "", showTotal: false);
             }
           } else {
-            print("Error searching expenses");
+            print("Error fetching expenses: ${response.statusCode}");
           }
         }
-          break;
-        case '4':
-        stdout.write("Enter item: ");
+        break;
+          case '4':
+        stdout.write("Item: ");
         String? item = stdin.readLineSync()?.trim();
-
-        stdout.write("Enter amount: ");
-        String? amountStr = stdin.readLineSync()?.trim();
-        int? amount = int.tryParse(amountStr ?? "");
-
-      if (item != null && item.isNotEmpty && amount != null) {
-          final url = Uri.parse('http://localhost:3000/expenses');
-          final body = {
-            "user_id": userId.toString(),
-            "item": item,
-            "paid": amount.toString()
-          };
-
-          final response = await http.post(url, body: body);
-          if (response.statusCode == 200) {
-            print("Expense added successfully!");
-          } else {
-            print("Failed to add expense");
-          }
-        } else {
-          print("Invalid input!");
-        }
+        stdout.write("Paid: ");
+        String? paidStr = stdin.readLineSync()?.trim();
+        int? paid = int.tryParse(paidStr ?? '');
+        if (item == null || item.isEmpty || paid == null) {
+          print("Invalid input. Item cannot be empty and Paid must be a number.");
           break;
+        }
+        final url = Uri.parse('http://localhost:3000/expenses/add');
+        final body = {
+          "user_id": userId.toString(),
+          "item": item,
+          "paid": paid.toString()
+        };
+
+        final response = await http.post(
+          url,
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode(body),
+        );
+        if (response.statusCode == 201) {
+          print("Expense added successfully.");
+        } else {
+          print("Error adding expense: ${response.statusCode}");
+        }
+        break;
+
         case '5':
-        stdout.write("Enter expense ID to delete: ");
+        stdout.write("Item id: ");
         String? idStr = stdin.readLineSync()?.trim();
-        int? id = int.tryParse(idStr ?? "");
+        int? expenseId = int.tryParse(idStr ?? '');
 
-        if (id != null) {
-          final url = Uri.parse('http://localhost:3000/expenses/$id');
-          final response = await http.delete(url);
-
-          if (response.statusCode == 200) {
-            print("Expense deleted successfully!");
-          } else {
-            print("Failed to delete expense");
-          }
-        } else {
-          print("Invalid ID!");
-        }
+        if (expenseId == null) {
+          print("Invalid input. Please enter a number.");
           break;
-        case '6':
-        print("Goodbye!");
+        }
+
+        final delUrl = Uri.parse('http://localhost:3000/expenses/$expenseId');
+        final delResp = await http.delete(delUrl);
+
+        if (delResp.statusCode == 200) {
+          print("Deleted!");
+        } else if (delResp.statusCode == 404) {
+          print("Expense not found.");
+        } else {
+          print("Error deleting expense: ${delResp.statusCode}");
+        }
+        break;
+
+       case '6':
+        stdout.write("----- Bye -------\n");
         return;
+
+      default:
+        stdout.write("Invalid choice, try again.\n");
     }
   }
 }
