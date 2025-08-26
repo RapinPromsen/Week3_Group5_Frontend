@@ -28,6 +28,22 @@ stdout.write("===== Login =====\n");
   });
 }
 
+void printExpenses(List<dynamic> expenses, String title,{bool showTotal = true}) {
+  print("--------- $title ----------");
+  int total = 0;
+
+  for (var e in expenses) {
+    int paid = e['paid'] as int;
+    String formattedDate = e['date'].replaceAll('T', ' ').replaceAll('Z', '');
+    total += paid;
+    print("${e['id']}. ${e['item']}  : ${e['paid']}฿ : $formattedDate");
+  }
+
+ if (showTotal) {
+    print("Total expenses = $total฿");
+  }
+}
+
 Future<void> expenseMenu(int userId) async {
   while (true) {
     print("\n===== Expense Tracking App =====");
