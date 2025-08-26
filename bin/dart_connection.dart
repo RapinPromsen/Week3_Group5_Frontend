@@ -86,6 +86,28 @@ Future<void> expenseMenu(int userId) async {
           print("Error fetching today's expenses");
         }
         break;
+      case '3':
+        stdout.write("Enter keyword to search: ");
+        String? keyword = stdin.readLineSync()?.trim();
+
+        if (keyword != null && keyword.isNotEmpty) {
+          final url = Uri.parse(
+            'http://localhost:3000/expenses/search?user_id=$userId&keyword=$keyword',
+          );
+          final response = await http.get(url);
+
+          if (response.statusCode == 200) {
+            List<dynamic> expenses = jsonDecode(response.body);
+            if (expenses.isEmpty) {
+              print("No expenses found for '$keyword'");
+            } else {
+              printExpenses(expenses, "Search result for '$keyword'");
+            }
+          } else {
+            print("Error searching expenses");
+          }
+        }
+        break;
     }
   }
 }
