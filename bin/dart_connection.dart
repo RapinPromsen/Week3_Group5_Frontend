@@ -3,12 +3,12 @@ import 'dart:io';
 import 'dart:convert';
 
 void main() {
-stdout.write("===== Login =====\n");
+  stdout.write("===== Login =====\n");
   stdout.write("Username: ");
   String? username = stdin.readLineSync()?.trim();
   stdout.write("Password: ");
   String? password = stdin.readLineSync()?.trim();
-  if (username == null  ||password == null) {
+  if (username == null || password == null) {
     stdout.write("Incomplete input\n");
     return;
   }
@@ -21,7 +21,7 @@ stdout.write("===== Login =====\n");
       final data = jsonDecode(response.body);
       final int userId = data['user_id'];
       expenseMenu(userId);
-    } else if (response.statusCode == 401  ||response.statusCode == 500) {
+    } else if (response.statusCode == 401 || response.statusCode == 500) {
       stdout.write(response.body + "\n");
     } else {
       stdout.write("Unknown error\n");
@@ -29,7 +29,11 @@ stdout.write("===== Login =====\n");
   });
 }
 
-void printExpenses(List<dynamic> expenses, String title,{bool showTotal = true}) {
+void printExpenses(
+  List<dynamic> expenses,
+  String title, {
+  bool showTotal = true,
+}) {
   print("--------- $title ----------");
   int total = 0;
 
@@ -40,7 +44,7 @@ void printExpenses(List<dynamic> expenses, String title,{bool showTotal = true})
     print("${e['id']}. ${e['item']}  : ${e['paid']}฿ : $formattedDate");
   }
 
- if (showTotal) {
+  if (showTotal) {
     print("Total expenses = $total฿");
   }
 }
@@ -67,6 +71,19 @@ Future<void> expenseMenu(int userId) async {
           List<dynamic> expense = jsonDecode(response.body);
         } else {
           print("Error fetching expenses: ${response.statusCode}");
+        }
+        break;
+      case '2':
+        final url = Uri.parse(
+          'http://localhost:3000/expenses/today?user_id=$userId',
+        );
+        final response = await http.get(url);
+
+        if (response.statusCode == 200) {
+          List<dynamic> expenses = jsonDecode(response.body);
+          printExpenses(expenses, "Today's Expenses");
+        } else {
+          print("Error fetching today's expenses");
         }
         break;
     }
