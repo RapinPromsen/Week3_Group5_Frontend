@@ -20,7 +20,7 @@ void main() {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       final int userId = data['user_id'];
-      expenseMenu(userId);
+      expenseMenu(userId,username);
     } else if (response.statusCode == 401 || response.statusCode == 500) {
       stdout.write(response.body + "\n");
     } else {
@@ -31,10 +31,7 @@ void main() {
 
 void printExpenses(
   List<dynamic> expenses,
-  String title, {
-  bool showTotal = true,
-}) {
-  print("--------- $title ----------");
+  {bool showTotal = true,}) {
   int total = 0;
 
   for (var e in expenses) {
@@ -49,9 +46,10 @@ void printExpenses(
   }
 }
 
-Future<void> expenseMenu(int userId) async {
+Future<void> expenseMenu(int userId, String username) async {
   while (true) {
     print("\n===== Expense Tracking App =====");
+    print("Welcome ${username}");
     print("1. Show all");
     print("2. Today's expense");
     print("3. Search expense");
@@ -64,12 +62,13 @@ Future<void> expenseMenu(int userId) async {
 
     switch (choose) {
       case '1':
+      print("--------------- All expenses ---------------");
         final url = Uri.parse('http://localhost:3000/expenses?user_id=$userId');
         final response = await http.get(url);
 
         if (response.statusCode == 200) {
           List<dynamic> expense = jsonDecode(response.body);
-          printExpenses(expense, "All Expenses"); //little bug 
+          printExpenses(expense); //little bug 
         } else {
           print("Error fetching expenses: ${response.statusCode}");
         }
@@ -79,10 +78,11 @@ Future<void> expenseMenu(int userId) async {
         final todayStr = "${today.year}-${today.month}-${today.day}";
         final todayUrl = Uri.parse('http://localhost:3000/expenses?user_id=$userId&date=$todayStr');
         final todayResp = await http.get(todayUrl);
+        print("--------------- Today's expenses ---------------");
 
         if (todayResp.statusCode == 200) {
           List<dynamic> todayExpenses = jsonDecode(todayResp.body);
-          printExpenses(todayExpenses, "Today's Expenses", showTotal: false);
+          printExpenses(todayExpenses, showTotal: false);
         } else {
           print("Error fetching today's expenses: ${todayResp.statusCode}");
         }
@@ -104,7 +104,7 @@ Future<void> expenseMenu(int userId) async {
             if (results.isEmpty) {
               print("No items: \"$keyword\"");
             } else {
-              printExpenses(results, "", showTotal: false);
+              printExpenses(results,showTotal: false);
             }
           } else {
             print("Error fetching expenses: ${response.statusCode}");
@@ -112,6 +112,7 @@ Future<void> expenseMenu(int userId) async {
         }
         break;
           case '4':
+        print("===== Add new item =====");
         stdout.write("Item: ");
         String? item = stdin.readLineSync()?.trim();
         stdout.write("Paid: ");
@@ -134,13 +135,14 @@ Future<void> expenseMenu(int userId) async {
           body: jsonEncode(body),
         );
         if (response.statusCode == 201) {
-          print("Expense added successfully.");
+          print("Inserted!");
         } else {
           print("Error adding expense: ${response.statusCode}");
         }
         break;
 
         case '5':
+        print("===== Delete an item =====");
         stdout.write("Item id: ");
         String? idStr = stdin.readLineSync()?.trim();
         int? expenseId = int.tryParse(idStr ?? '');
@@ -171,4 +173,3 @@ Future<void> expenseMenu(int userId) async {
     }
   }
 }
-// fix bug
